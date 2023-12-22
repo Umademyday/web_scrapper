@@ -3,8 +3,8 @@
 Assumptions I've made:
 - While counting words in the title, punctuation should be ignored, so "note-taking app" is 3 words not 2
 - In a meantime web links counts as a single word, so (da.vidbuchanan.co.uk) is 1 word, not 4
-- News output type as well as filtering mode could be selected in file arguments
-- Filtering thresholds and news num to parse are in config.ini file
+- News output type as well as filtering mode could be selected in script arguments
+- Filtering thresholds and news number to parse are in config.ini file
 
 Usage examples:
 python3 main.py

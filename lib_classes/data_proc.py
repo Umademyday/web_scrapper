@@ -36,6 +36,7 @@ class NewsFactory:
                 comments = 0
 
         except AttributeError:
+            # Sometimes news do not have substring, so we put score and comments to 0
             score = 0
             comments = 0
 
