@@ -30,9 +30,9 @@ if __name__ == '__main__':
     news_items = config.news_items
 
     # Filter news items
-    news_filter = NewsFilter(news_items, filtering_mode)
     if filtering_mode not in [0, 1, 2]:
         logging.error('Wrong filtering attribute')
+    news_filter = NewsFilter(news_items, filtering_mode)
 
     logging.info('Starting filtering')
     news_items = news_filter.filter(config.words_num_filter1, config.words_num_filter2)
