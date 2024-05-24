@@ -1,67 +1,47 @@
-import requests
-from bs4 import BeautifulSoup
-import configparser
 import argparse
 import logging
 
-from lib_classes.data_proc import NewsFactory
-
-parser = argparse.ArgumentParser(description='Filter and output news items.')
-
-# Configuring logs
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Adding arguments
-parser.add_argument('--filtering_mode', type=int, choices=[1, 2], default=0,
-                    help='Filtering mode: 1 or 2 (no filtering if not specified)')
-parser.add_argument('--outputfile_name', type=str, default='',
-                    help='Output file name (if specified, output to the file)')
-
-# Parsing and accessing the arguments
-args = parser.parse_args()
-filtering_mode = args.filtering_mode
-outputfile_name = args.outputfile_name
-
-# Parse configfile
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-URL = config['SETTINGS']['URL']
-NEWS_NUM = min(config.getint('SETTINGS', 'NEWS_NUM'), 30)
-WORDS_NUM_FILTER1 = config.getint('SETTINGS', 'WORDS_NUM_FILTER1')
-WORDS_NUM_FILTER2 = config.getint('SETTINGS', 'WORDS_NUM_FILTER1')
-
-logging.info('Fetching data from the website {}'.format(URL))
-page = requests.get(URL)
-soup = BeautifulSoup(page.content, "html.parser")
-
-title_elements = soup.find_all("tr", class_="athing")
-subtext_elements = soup.find_all("td", class_="subtext")
+from lib_classes.config_proc import Configuration
+from lib_classes.filter_proc import NewsFilter
+from lib_classes.represent_proc import Representation
 
 if __name__ == '__main__':
 
-    logging.info('Processing news items')
-    # Create news objects using Factory
-    news_items = [NewsFactory.create_from_soup(title_elements[i], subtext_elements[i]) for i in range(NEWS_NUM)]
+    # Configuring logs
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.info('Starting configuration gathering')
 
-    # Now filter according to args
-    if filtering_mode == 1:
-        logging.info('Filtering mode 1 enabled')
-        news_items = sorted([x for x in news_items if x.words_count() > WORDS_NUM_FILTER1], key=lambda x: x.comments)
+    parser = argparse.ArgumentParser(description='Filter and output news items.')
 
-    elif filtering_mode == 2:
-        logging.info('Filtering mode 2 enabled')
-        news_items = sorted([x for x in news_items if x.words_count() <= WORDS_NUM_FILTER2], key=lambda x: x.score)
+    # Adding arguments
+    parser.add_argument('--filtering_mode', type=int, choices=[1, 2], default=0,
+                        help='Filtering mode: 1 or 2 (no filtering if not specified)')
+    parser.add_argument('--outputfile_name', type=str, default='',
+                        help='Output file name (if specified, output to the file)')
 
-    # Print to file
+    # Parsing and accessing the arguments
+    args = parser.parse_args()
+    filtering_mode = args.filtering_mode
+    outputfile_name = args.outputfile_name
+    logging.info('Fetching news')
+
+    # Load configuration and fetch news
+    config = Configuration()
+    news_items = config.news_items
+
+    # Filter news items
+    news_filter = NewsFilter(news_items, filtering_mode)
+    if filtering_mode not in [0, 1, 2]:
+        logging.error('Wrong filtering attribute')
+
+    logging.info('Starting filtering')
+    news_items = news_filter.filter(config.words_num_filter1, config.words_num_filter2)
+
+    # Output the results
     if outputfile_name:
-        logging.info('Writing data to {}'.format(outputfile_name))
-        with open(outputfile_name, 'w') as file:
-            for item in news_items:
-                file.write(f"Rank: {item.rank}, Title: {item.title}, Score: {item.score}, Comments: {item.comments}\n")
-    # Print to stdout
+        logging.info(f'Writing data to {outputfile_name}')
+        Representation.write_news_to_file(news_items, outputfile_name)
     else:
-        for item in news_items:
-            print(f"Rank: {item.rank}, Title: {item.title}, Score: {item.score}, Comments: {item.comments}")
+        Representation.print_news(news_items)
 
-logging.info('Execution completed.')
+    logging.info('Execution completed.')
