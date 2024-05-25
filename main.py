@@ -41,6 +41,7 @@ def main():
         # Filter news items
         if filtering_mode not in [0, 1, 2]:
             logging.error('Wrong filtering attribute')
+            sys.exit(1)
         news_filter = NewsFilter(news_items, filtering_mode)
 
         logging.info('Starting filtering')
