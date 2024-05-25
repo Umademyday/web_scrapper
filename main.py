@@ -2,6 +2,7 @@ import argparse
 import logging
 
 from lib_classes.config_proc import Configuration
+from lib_classes.parcer_proc import Parser
 from lib_classes.filter_proc import NewsFilter
 from lib_classes.represent_proc import Representation
 
@@ -26,8 +27,11 @@ if __name__ == '__main__':
     logging.info('Fetching news')
 
     # Load configuration and fetch news
-    config = Configuration()
-    news_items = config.news_items
+    config = Configuration('config.ini')
+
+    # Fetch and parse news
+    parser = Parser(config.url, config.news_num)
+    news_items = parser.news_items
 
     # Filter news items
     if filtering_mode not in [0, 1, 2]:
