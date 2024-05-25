@@ -14,5 +14,6 @@ class Parser:
         soup = BeautifulSoup(response.content, "html.parser")
         title_elements = soup.find_all("tr", class_="athing")
         subtext_elements = soup.find_all("td", class_="subtext")
-        news_items = [NewsFactory.create_from_soup(title_elements[i], subtext_elements[i]) for i in range(self.news_num)]
+        news_items = [NewsFactory.create_from_soup(title_elements[i],
+                                                   subtext_elements[i]) for i in range(self.news_num)]
         return news_items
