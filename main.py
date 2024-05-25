@@ -9,6 +9,7 @@ from lib_classes.parcer_proc import Parser
 from lib_classes.filter_proc import NewsFilter
 from lib_classes.represent_proc import Representation
 
+
 def main():
     # Configuring logs
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
