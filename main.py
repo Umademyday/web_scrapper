@@ -8,7 +8,7 @@ from lib_classes.config_proc import Configuration
 from lib_classes.data_sources import URLDataSource
 from lib_classes.parsers import YcombHTMLParser
 from lib_classes.data_proc import NewsFactory
-from lib_classes.filters import WordMaxFilter, WordMinFilter
+from lib_classes.filters import WordMaxFilter, WordMinFilter, LenFilter
 from lib_classes.represent_proc import Representation
 
 
@@ -52,14 +52,13 @@ def main():
         # Filter news items
         logging.info('Starting filtering')
         if filtering_mode == 1:
-            news_filter = WordMinFilter(min_words=config.words_num_filter1)
+            news_filter = WordMinFilter(min_words=config.words_num_filter1, news_num=config.news_num)
         elif filtering_mode == 2:
-            news_filter = WordMaxFilter(max_words=config.words_num_filter2)
+            news_filter = WordMaxFilter(max_words=config.words_num_filter2, news_num=config.news_num)
         else:
-            news_filter = None
+            news_filter = LenFilter(news_num=config.news_num)
 
-        if news_filter:
-            news_items = news_filter.apply(news_items)
+        news_items = news_filter.apply(news_items)
 
         # Output the results
         if outputfile_name:
