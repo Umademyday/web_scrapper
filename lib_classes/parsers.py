@@ -11,8 +11,6 @@ class BaseParser(ABC):
 class YcombHTMLParser(BaseParser):
     def __init__(self, url):
         self.url = url
-        # self.news_num = news_num
-        # self.news_items = self.parse()
 
     def parse(self, content):
 
