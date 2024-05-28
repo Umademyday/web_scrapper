@@ -5,8 +5,10 @@ from requests.exceptions import RequestException
 
 
 from lib_classes.config_proc import Configuration
-from lib_classes.parcer_proc import Parser
-from lib_classes.filter_proc import NewsFilter
+from lib_classes.data_sources import URLDataSource
+from lib_classes.parsers import YcombHTMLParser
+from lib_classes.data_proc import NewsFactory
+from lib_classes.filters import WordMaxFilter, WordMinFilter
 from lib_classes.represent_proc import Representation
 
 
@@ -33,19 +35,31 @@ def main():
 
         # Load configuration and fetch news
         config = Configuration('config.ini')
+        data_source = URLDataSource(config.url)
 
         # Fetch and parse news
-        parser = Parser(config.url, config.news_num)
-        news_items = parser.news_items
+        content = data_source.fetch()
+        parser = YcombHTMLParser(config.url)
+
+        # Parse data
+        parsed_data = parser.parse(content)
+        title_elements, subtext_elements = parsed_data
+
+        # Convert parsed data to NewsItem objects
+        news_items = [NewsFactory.create_from_soup(title_elem, subtext_elem) for title_elem, subtext_elem in
+                      zip(title_elements, subtext_elements)]
 
         # Filter news items
-        if filtering_mode not in [0, 1, 2]:
-            logging.error('Wrong filtering attribute')
-            sys.exit(1)
-        news_filter = NewsFilter(news_items, filtering_mode)
-
         logging.info('Starting filtering')
-        news_items = news_filter.filter(config.words_num_filter1, config.words_num_filter2)
+        if filtering_mode == 1:
+            news_filter = WordMinFilter(min_words=config.words_num_filter1)
+        elif filtering_mode == 2:
+            news_filter = WordMaxFilter(max_words=config.words_num_filter2)
+        else:
+            news_filter = None
+
+        if news_filter:
+            news_items = news_filter.apply(news_items)
 
         # Output the results
         if outputfile_name:
